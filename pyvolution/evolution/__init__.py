@@ -12,7 +12,7 @@ from pyvolution.survival import keep_best_halve
 def build_evolution_model(
         fitness: FitnessFunction,
         birth: ChildrenSpawn,
-        growth: GrowthDetermination=keep_population_size(100),
+        growth: GrowthDetermination=keep_population_size(10),
         survival: Survival=keep_best_halve,
 
 ):
