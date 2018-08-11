@@ -59,7 +59,10 @@ def build_evolution_model(
         survivors = survival(evaluate_population(fitness, population))
         return (
             chain(
-                evaluate_population(fitness, birth((i for (i, ranking) in survivors), growth(survival), generation+1)),
+                evaluate_population(
+                    fitness,
+                    birth((i for (i, ranking) in survivors), growth(survivors), generation+1)
+                ),
                 survivors
             )
         )
