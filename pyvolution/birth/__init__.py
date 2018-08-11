@@ -25,7 +25,7 @@ def create_fitness_selector(fitness: FitnessFunction, parents: int=2) -> MateSel
             tuple(
                 individual
                 for (individual, ranking) in
-                sorted(evaluate_population(fitness, population), key=lambda x: x[1], reversed=True)
+                sorted(evaluate_population(fitness, population), key=lambda x: x[1], reverse=True)
             ),
             children
         )
