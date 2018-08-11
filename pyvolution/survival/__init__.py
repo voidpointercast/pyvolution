@@ -8,5 +8,5 @@ def create_threshold_indication(threshold: Fitness) -> SurvivalIndication:
 
 
 def keep_best_halve(population: RankedPopulation) -> RankedPopulation:
-    ranking = sorted(population, key=lambda x: x[1], reversed=True)
+    ranking = sorted(population, key=lambda x: x[1], reverse=True)
     return ranking[0: len(ranking) // 2]
