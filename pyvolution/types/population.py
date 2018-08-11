@@ -130,5 +130,5 @@ def evaluate_population(fitness: FitnessFunction, population: Population) -> Ran
 def keep_population_size(size: int) -> GrowthDetermination:
 
     def determine_children_count(population: RankedPopulation) -> int:
-        return min(size - len(population), 0)
+        return max(size - len(population), 0)
     return determine_children_count
