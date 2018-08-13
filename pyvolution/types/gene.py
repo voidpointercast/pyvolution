@@ -1,4 +1,6 @@
 from typing import TypeVar, Sequence, Callable, Optional, Mapping, MutableMapping, Iterable, Tuple
+from functools import reduce
+from operator import add
 from itertools import groupby
 from collections import defaultdict
 from attr import attrs, attrib
@@ -16,18 +18,77 @@ class GenePosition:
     genome: GeneType = attrib()
     name: str = attrib(default='')
 
-Chromosome = MutableMapping[int, BaseType]
+Chromosome = MutableMapping[int, GeneType]
 ChromosomeSet = Mapping[int, Chromosome]
 GeneMapping = Callable[[int], Tuple[int, int]]
 GeneRemapping = Callable[[Tuple[int, int]], Optional[int]]
-GeneEncoding = Callable[[GeneType], BaseType]
-GeneDecoding = Callable[[BaseType], GeneType]
+GeneEncoding = Callable[[Sequence[GeneType]], BaseType]
+GeneDecoding = Callable[[BaseType], Sequence[GeneType]]
 Transcription = Callable[[DataType], Sequence[GeneType]]
 ReverseTranscription = Callable[[Sequence[GeneType]], DataType]
 Karyogram = Mapping[int, Sequence[Chromosome]]
 Dominance = Callable[[Iterable[GeneType]], GeneType]
 KaryoTranscription = Callable[[DataType], Mapping[int, Chromosome]]
 Crossover = Callable[[Karyogram], Karyogram]
+
+
+def default_reduction(bases: Sequence[BaseType]) -> BaseType:
+    return reduce(add, bases[1:], bases[0])
+
+
+def create_crossover(
+        encoding: GeneEncoding,
+        decoding: GeneDecoding,
+        selection: Callable[[Sequence[Chromosome]], Sequence[Tuple[Optional[Chromosome], Chromosome]]],
+        indicator: Callable[[None], bool],
+        reduction: Callable[[Sequence[BaseType]], BaseType]=default_reduction,
+) -> Crossover:
+    """
+    :param reduction:
+    :param encoding:
+    :param decoding:
+    :param selection:
+    :param indicator:
+    :return:
+    >>> from random import uniform
+    >>> karyogram = {0: [dict((i, i) for i in range(5)), dict((i, i) for i in range(5, 9))]}
+    >>> def encoding(x: Sequence[int]) -> str:
+    ...     return ''.join(str(num) + '#' for num in x)
+    >>> def decoding(x: str) -> Sequence[int]:
+    ...     return [int(num) for num in x.split('#') if num]
+    >>> indicator = lambda: uniform(-1.0, 1.0) > 0.0
+    >>> xover = create_crossover(encoding, decoding, lambda x: [(x[0], x[1])], indicator)
+    >>> {num for c in xover(karyogram)[0] for num in c.values()}
+    {0, 1, 2, 3, 5, 6, 7, 8}
+    """
+    def do_xover(left: Optional[Chromosome], right: Chromosome) -> Sequence[Chromosome]:
+        if left is None:
+            return [right]
+
+        crossed_left, crossed_right = zip(
+            *(
+                (l, r) if indicator() else (r, l)
+                for (l, r) in zip(encoding(left.values()), encoding(right.values()))
+            )
+        )
+        return (
+            type(left)(enumerate(decoding(reduction(crossed_left)))),
+            type(right)(enumerate(decoding(reduction(crossed_right))))
+        )
+
+    def xover(karyogram: Karyogram) -> Karyogram:
+        pairings = (
+            (position, selection(chromosomes), type(chromosomes))
+            for (position, chromosomes) in karyogram.items()
+        )
+        return type(karyogram)(
+            (position, ctype(c for (left, right) in tuples for c in do_xover(left, right)))
+            for (position, tuples, ctype) in pairings
+        )
+    return xover
+
+
+
 
 
 def merge_chromosome_sets(sets: Sequence[ChromosomeSet]) -> Karyogram:
