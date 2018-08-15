@@ -64,7 +64,7 @@ def create_population_builder(
     >>> from pyvolution.types.gene import create_linear_mapping, create_chromosome_builder
     >>> from pyvolution.types.individual import create_individual_builder, create_sequential_naming
     >>> mapping, remapping = create_linear_mapping(4)
-    >>> builder = create_chromosome_builder(list, mapping, str.encode, handle_gap=lambda x: b'')
+    >>> builder = create_chromosome_builder(list, mapping, handle_gap=lambda x: b'')
     >>> spawner = create_individual_builder(builder, create_sequential_naming())
     >>> pop_builder = create_population_builder(spawner, build_additive_entropy_source(ascii_uppercase, 8, 2))
     >>> population = [x for (i, x) in zip(range(2), pop_builder())]

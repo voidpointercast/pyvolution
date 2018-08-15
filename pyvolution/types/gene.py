@@ -114,7 +114,6 @@ def merge_chromosome_sets(sets: Sequence[ChromosomeSet]) -> Karyogram:
 
 def remap_genome(
         remapping: GeneRemapping,
-        decoding: GeneDecoding,
         retranscribe: ReverseTranscription,
         dominance: Dominance,
         karyogram: Karyogram
@@ -122,23 +121,22 @@ def remap_genome(
     # noinspection PyTypeChecker
     """
         :param remapping:
-        :param decoding:
         :param retranscribe:
         :param dominance:
         :param karyogram:
         :return:
         >>> from pyvolution.types.gene import create_linear_mapping
         >>> mapping, remapping = create_linear_mapping(4)
-        >>> builder = create_chromosome_builder(list, mapping, str.encode, handle_gap=lambda x: b'G')
+        >>> builder = create_chromosome_builder(list, mapping, handle_gap=lambda x: b'G')
         >>> first, second = builder('Hello World!'), builder('HELLO WORLD!')
-        >>> remap_genome(remapping, bytes.decode, ''.join, max, merge_chromosome_sets((first, second)))
+        >>> remap_genome(remapping, ''.join, max, merge_chromosome_sets((first, second)))
         'Hello World!'
         """
     decoded = sorted(
-        ((cindex, gindex), decoding(base))
+        ((cindex, gindex), gene)
         for (cindex, chromosomes) in karyogram.items()
         for chromosome in chromosomes
-        for (gindex, base) in chromosome.items()
+        for (gindex, gene) in chromosome.items()
     )
     dominant = tuple(zip(*sorted(
         (remapping(position), dominance(gene[1] for gene in genes))
@@ -170,7 +168,6 @@ def create_linear_mapping(
 def create_chromosome_builder(
         transcription: Transcription,
         mapping: GeneMapping,
-        encoding: GeneEncoding,
         create_chromosome: Callable[[None], Chromosome]=dict,
         handle_gap: [Callable[[int], BaseType]]=lambda pos: None
 ) -> KaryoTranscription:
@@ -183,16 +180,16 @@ def create_chromosome_builder(
         :param handle_gap:
         :return:
         >>> mapping, remapping = create_linear_mapping(4)
-        >>> builder = create_chromosome_builder(list, mapping, str.encode, handle_gap=lambda x: b'G')
+        >>> builder = create_chromosome_builder(list, mapping, handle_gap=lambda x: b'G')
         >>> repr(dict(builder("Hello World!"))).replace(' ', '')
-        "{0:{0:b'H',1:b'e',2:b'l',3:b'l'},1:{0:b'o',1:b'',2:b'W',3:b'o'},2:{0:b'r',1:b'l',2:b'd',3:b'!'}}"
+        "{0:{0:'H',1:'e',2:'l',3:'l'},1:{0:'o',1:'',2:'W',3:'o'},2:{0:'r',1:'l',2:'d',3:'!'}}"
         """
     def build_chromosome_set(data: DataType) -> ChromosomeSet:
         karyogram = defaultdict(create_chromosome)
         genes = transcription(data)
         for (i, gene) in enumerate(genes):
             chromosome, position = mapping(i)
-            karyogram[chromosome][position] = encoding(gene)
+            karyogram[chromosome][position] = gene
         for chromosome in karyogram.values():
             gaps = set(range(max(karyogram.keys()))).difference(karyogram.keys())
             for gap in gaps:

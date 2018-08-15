@@ -85,7 +85,7 @@ def create_individual_builder(
     :return:
     >>> from pyvolution.types.gene import create_linear_mapping, create_chromosome_builder
     >>> mapping, remapping = create_linear_mapping(4)
-    >>> builder = create_chromosome_builder(list, mapping, str.encode, handle_gap=lambda x: b'')
+    >>> builder = create_chromosome_builder(list, mapping, handle_gap=lambda x: b'')
     >>> spawner = create_individual_builder(builder, create_sequential_naming())
     >>> creature = spawner(('Hello', 'World'), 0)
     >>> creature.name
@@ -93,7 +93,7 @@ def create_individual_builder(
     >>> creature.generation
     0
     >>> creature.karyogram # doctest: +ELLIPSIS
-    {0: ({0: b'H', 1: b'e', 2: b'l', 3: b'l'}, {0: b'W', 1: b'o', 2: b'r', 3: b'l'}), 1: ({0: b'o'}, {0: b'd'})}
+    {0: ({0: 'H', 1: 'e', 2: 'l', 3: 'l'}, {0: 'W', 1: 'o', 2: 'r', 3: 'l'}), 1: ({0: 'o'}, {0: 'd'})}
     """
     def spawn_individual(data: Iterator[DataType], generation: int) -> Individual:
         payload = sorted(
@@ -148,7 +148,7 @@ def create_birth_builder(mitosis: Mitosis, naming: Naming, merge: Merging=merge_
     :return:
     >>> from pyvolution.types.gene import create_linear_mapping, create_chromosome_builder
     >>> mapping, remapping = create_linear_mapping(4)
-    >>> builder = create_chromosome_builder(list, mapping, str.encode, handle_gap=lambda x: b'')
+    >>> builder = create_chromosome_builder(list, mapping, handle_gap=lambda x: b'')
     >>> spawner = create_individual_builder(builder, create_sequential_naming())
     >>> mitosis = create_gamete_builder(select_half)
     >>> birth = create_birth_builder(mitosis, create_sequential_naming())
@@ -156,10 +156,10 @@ def create_birth_builder(mitosis: Mitosis, naming: Naming, merge: Merging=merge_
     >>> results = []
     >>> for i in range(1000):
     ...     child = birth(parents, 1)
-    ...     one = b''.join(child.karyogram[0][0].values()), b''.join(child.karyogram[0][1].values())
-    ...     two = b''.join(child.karyogram[1][0].values()), b''.join(child.karyogram[1][1].values())
-    ...     results.append(one in [(b'AAAA', b'BBBB'), (b'AAAA', b'bbbb'), (b'aaaa', b'BBBB'), (b'aaaa', b'bbbb')])
-    ...     results.append(two in [(b'CCCC', b'DDDD'), (b'CCCC', b'dddd'), (b'cccc', b'DDDD'), (b'cccc', b'dddd')])
+    ...     one = ''.join(child.karyogram[0][0].values()), ''.join(child.karyogram[0][1].values())
+    ...     two = ''.join(child.karyogram[1][0].values()), ''.join(child.karyogram[1][1].values())
+    ...     results.append(one in [('AAAA', 'BBBB'), ('AAAA', 'bbbb'), ('aaaa', 'BBBB'), ('aaaa', 'bbbb')])
+    ...     results.append(two in [('CCCC', 'DDDD'), ('CCCC', 'dddd'), ('cccc', 'DDDD'), ('cccc', 'dddd')])
     >>> all(results)
     True
     """

@@ -7,12 +7,11 @@ from pyvolution.types.population import FitnessFunction, Fitness, DataType
 def create_fitness(
         func: Callable[[DataType], Fitness],
         remapping: GeneRemapping,
-        decoding: GeneDecoding,
         retranscribe: ReverseTranscription,
         dominance: Dominance=lambda x: max(filter(None, x))
 ) -> FitnessFunction:
     def fitness(individual: Individual) -> Fitness:
-        return func(remap_genome(remapping, decoding, retranscribe, dominance, individual.karyogram))
+        return func(remap_genome(remapping, retranscribe, dominance, individual.karyogram))
     return fitness
 
 
