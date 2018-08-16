@@ -15,8 +15,8 @@ def default_mitosis(selector: Selector=select_half, xover=lambda x: x) -> Mitosi
     return create_gamete_builder(selector, xover)
 
 
-def default_birth() -> Birthing:
-    return create_birth_builder(default_mitosis(), create_sequential_naming())
+def default_birth(xover: Crossover=lambda x: x) -> Birthing:
+    return create_birth_builder(default_mitosis(), create_sequential_naming(), xover=xover)
 
 
 def create_fitness_selector(fitness: FitnessFunction, parents: int=2) -> MateSelector:
@@ -34,4 +34,4 @@ def create_fitness_selector(fitness: FitnessFunction, parents: int=2) -> MateSel
 
 
 def top_individuals_breed(fitness: FitnessFunction, xover: Crossover=lambda x: x) -> ChildrenSpawn:
-    return create_children_builder(create_fitness_selector(fitness), default_birth(), xover=xover)
+    return create_children_builder(create_fitness_selector(fitness), default_birth(xover))
