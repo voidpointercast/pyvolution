@@ -28,12 +28,13 @@ def build_evolution_model(
     >>> from collections import defaultdict
     >>> from pyvolution.birth import top_individuals_breed
     >>> from pyvolution.fitness import create_fitness
-    >>> from pyvolution.types.gene import create_linear_mapping, create_chromosome_builder
+    >>> from pyvolution.types.gene import create_linear_mapping, create_chromosome_builder, remap_genome
     >>> from pyvolution.types.individual import create_individual_builder, create_sequential_naming
+    >>> ascii_letters += ' '
     >>> def fitness(value: str) -> float:
-    ...     return sum((1.0 if l.lower() == r.lower() else 0.0) for (l, r) in zip(value, 'HelloWorld'))
-    >>> fitness('HElloWorld')
-    10.0
+    ...     return sum((1.0 if l.lower() == r.lower() else 0.0) for (l, r) in zip(value, 'Hello World'))
+    >>> fitness('HEllo World')
+    11.0
     >>> def randdata(size: int, amount: int):
     ...     return [''.join(choice(ascii_letters) for _ in range(size))  for _ in range(amount)]
     >>> mapping, remapping = create_linear_mapping(4)
@@ -42,7 +43,7 @@ def build_evolution_model(
     >>> cbuilder = create_chromosome_builder(lambda x: [x], mapping)
     >>> builder = create_individual_builder(cbuilder, create_sequential_naming(lambda x: x-10))
     >>> start_pop = [
-    ...     builder(randdata(10, 2), 0) for _ in range(10)
+    ...     builder(randdata(11, 2), 0) for _ in range(10)
     ... ]
     >>> names =  tuple(i.name for i in start_pop)
     >>> min(names), max(names)
