@@ -141,7 +141,12 @@ def create_gamete_builder(selector: Selector, xover: Crossover=lambda x: x) -> M
     return create_gamete
 
 
-def create_birth_builder(mitosis: Mitosis, naming: Naming, merge: Merging=merge_karyograms) -> Birthing:
+def create_birth_builder(
+        mitosis: Mitosis,
+        naming: Naming,
+        merge: Merging=merge_karyograms,
+        xover: Crossover=lambda x: x
+) -> Birthing:
     """
     :param mitosis:
     :param naming:
@@ -166,7 +171,7 @@ def create_birth_builder(mitosis: Mitosis, naming: Naming, merge: Merging=merge_
     """
     def give_birth(parents: Sequence[Individual], generation: int) -> Individual:
         return Individual(
-            karyogram=merge(mitosis(parent) for parent in parents),
+            karyogram=merge(xover(mitosis(parent)) for parent in parents),
             generation=generation,
             name=naming(generation, parents)
         )
