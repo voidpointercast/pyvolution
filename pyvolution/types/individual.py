@@ -75,7 +75,8 @@ def create_individual_builder(
         transcription: KaryoTranscription,
         naming: Naming,
         karyo_handler: Callable[[Iterator[Tuple[int, Iterator[Chromosome]]]], Karyogram]=dict,
-        payload_handler: Callable[[Iterator[Chromosome]], Sequence[Chromosome]]=tuple
+        payload_handler: Callable[[Iterator[Chromosome]], Sequence[Chromosome]]=tuple,
+        xover: Crossover=lambda x: x
 ) -> Spawning:
     """
     :param karyo_handler:
@@ -105,7 +106,7 @@ def create_individual_builder(
         )
 
         return Individual(
-            karyogram=karyogram,
+            karyogram=xover(karyogram),
             generation=generation,
             name=naming(generation, tuple())
         )
