@@ -33,5 +33,9 @@ def create_fitness_selector(fitness: FitnessFunction, parents: int=2) -> MateSel
     return top_breed
 
 
-def top_individuals_breed(fitness: FitnessFunction, xover: Crossover=lambda x: x) -> ChildrenSpawn:
-    return create_children_builder(create_fitness_selector(fitness), default_birth(xover))
+def top_individuals_breed(
+        fitness: FitnessFunction,
+        xover: Crossover=lambda x: x,
+        anomaly: Anomaly=lambda x: x
+) -> ChildrenSpawn:
+    return create_children_builder(create_fitness_selector(fitness), default_birth(xover, anomaly))
