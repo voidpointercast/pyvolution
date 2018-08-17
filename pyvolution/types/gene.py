@@ -30,6 +30,7 @@ Karyogram = Mapping[int, Sequence[Chromosome]]
 Dominance = Callable[[Iterable[GeneType]], GeneType]
 KaryoTranscription = Callable[[DataType], Mapping[int, Chromosome]]
 Crossover = Callable[[Karyogram], Karyogram]
+Anomaly = Callable[[Karyogram], Karyogram]
 
 
 def default_reduction(bases: Sequence[BaseType]) -> BaseType:
