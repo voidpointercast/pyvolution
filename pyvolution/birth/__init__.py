@@ -1,5 +1,5 @@
 from typing import Iterator, Sequence
-from pyvolution.types.gene import Crossover
+from pyvolution.types.gene import Crossover, Anomaly
 from pyvolution.types.population import (
     FitnessFunction, create_children_builder, MateSelector,
     ChildrenSpawn, Population, evaluate_population, top_selector
@@ -15,8 +15,8 @@ def default_mitosis(selector: Selector=select_half, xover=lambda x: x) -> Mitosi
     return create_gamete_builder(selector, xover)
 
 
-def default_birth(xover: Crossover=lambda x: x) -> Birthing:
-    return create_birth_builder(default_mitosis(), create_sequential_naming(), xover=xover)
+def default_birth(xover: Crossover=lambda x: x, anomaly: Anomaly=lambda x: x) -> Birthing:
+    return create_birth_builder(default_mitosis(), create_sequential_naming(), xover=xover, anomaly=anomaly)
 
 
 def create_fitness_selector(fitness: FitnessFunction, parents: int=2) -> MateSelector:
