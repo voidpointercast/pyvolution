@@ -2,7 +2,7 @@ from typing import TypeVar, Callable, Sequence, Iterator, Optional, Tuple
 from random import choice
 from itertools import groupby, count
 from attr import attrs, attrib
-from pyvolution.types.gene import DataType, Chromosome, KaryoTranscription, Karyogram, Crossover
+from pyvolution.types.gene import DataType, Chromosome, KaryoTranscription, Karyogram, Crossover, Anomaly
 
 NameType = TypeVar('NameType')
 
@@ -145,7 +145,8 @@ def create_birth_builder(
         mitosis: Mitosis,
         naming: Naming,
         merge: Merging=merge_karyograms,
-        xover: Crossover=lambda x: x
+        xover: Crossover=lambda x: x,
+        anomaly: Anomaly=lambda x: x
 ) -> Birthing:
     """
     :param mitosis:
@@ -171,7 +172,7 @@ def create_birth_builder(
     """
     def give_birth(parents: Sequence[Individual], generation: int) -> Individual:
         return Individual(
-            karyogram=merge(xover(mitosis(parent)) for parent in parents),
+            karyogram=anomaly(merge(xover(mitosis(parent)) for parent in parents)),
             generation=generation,
             name=naming(generation, parents)
         )
