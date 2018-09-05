@@ -1,20 +1,22 @@
-from typing import Tuple, Union, Sequence, Callable, Optional
+from typing import Tuple, Union, Sequence, Callable, Optional, Iterator
 from sys import maxsize
 from itertools import chain
 from random import randint, random
-from math import sqrt
-from pyvolution.types.gene import create_linear_mapping, create_chromosome_builder, Crossover
+from math import sqrt, isnan
+from json import JSONEncoder
+from pyvolution.types.gene import create_linear_mapping, create_chromosome_builder, Crossover, remap_genome
 from pyvolution.survival import keep_best_halve
 from pyvolution.types.population import GrowthDetermination, keep_population_size, Fitness, Survival
-from pyvolution.types.individual import create_individual_builder, Naming, create_sequential_naming
+from pyvolution.types.individual import create_individual_builder, Naming, create_sequential_naming, Individual
 from pyvolution.fitness import create_fitness
 from pyvolution.models.algebra import (
-    Expression, evaluate, DefaultSeed, DefaultSeedTypes, create_expression_parser, DEFAULT_FUNCTIONS,
-    create_default_interpretation, Function, create_default_mutator
+    Expression, evaluate, DefaultSeed, DefaultSeedTypes, create_expression_parser, DEFAULT_FUNCTIONS, DEFAULT_VARIABLES,
+    create_default_interpretation, Function, create_default_mutator, show_expression
 )
 from pyvolution.evolution import build_evolution_model
 from pyvolution.birth import top_individuals_breed, Birthing
 from pyvolution.anomalies import Anomaly
+
 
 Point = Union[Tuple[float, float], Tuple[float, float, float]]
 
@@ -29,12 +31,28 @@ def random_seed() -> DefaultSeed:
 
 
 def create_basic_model_fitness(points: Sequence[Point]) -> Fitness:
-    arguments = tuple(dict(zip('xyz', point)) for point in points)
 
     def quadratic_error_fitness(expression: Expression) -> float:
-        return sqrt(
-            sum((evaluate(expression, point, 0.0, -float('infinity')))**2 for point in arguments)
-        )
+        try:
+            error = sum(
+                (
+                    evaluate(
+                        expression,
+                        dict(zip(DEFAULT_VARIABLES, point[0:-1])),
+                        0.0,
+                        -float('infinity')
+                    ) - point[-1]
+                ) ** 2
+                for point in points
+            )
+            if isinstance(error, complex):
+                error = abs(error)
+            error = -sqrt(error)
+            if isnan(error):
+                return -float('infinity')
+            return error
+        except ArithmeticError:
+            return -float('infinity')
     return quadratic_error_fitness
 
 
@@ -67,16 +85,20 @@ def create_basic_model(
     :param growth:
     :param survival:
     :return:
-    >>> points = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-    >>> population, evolve = create_basic_model(points)
+    >>> from itertools import cycle
+    >>> points = cycle([[(0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0), (2, 0, 1), (0, 5, 4)]])
+    >>> population, evolve, show = create_basic_model(points)
     >>> len(population[0].karyogram)
     4
     >>> len(population[0].karyogram[0])
     2
     >>> mutator = create_default_mutator()
     >>> for i in range(1):
-    ...     population, ranking = zip(*evolve(population, i, 1, mutator))
+    ...     ranked = tuple(evolve(population, i, 1, mutator))
+    ...     population, ranking = zip(*ranked)
     ...     print(max(ranking))
+    >>> best = max(ranked, key=lambda x: x[1])[0]
+    >>> show_expression(show(best))
     """
     mapping, remapping = create_linear_mapping(chromosome_size)
     parser = create_expression_parser(
@@ -101,4 +123,6 @@ def create_basic_model(
     )
     return population, evolution
 
+    def __init__(self):
+        super().__init__(ensure_ascii=False)
 
