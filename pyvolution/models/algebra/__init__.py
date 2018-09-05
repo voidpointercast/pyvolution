@@ -3,6 +3,7 @@ from random import random, uniform, randint
 from operator import add, sub, mul, truediv, pow
 from enum import Enum
 from attr import attrib, attrs
+from pyvolution.types.gene import remap_genome
 
 
 DomainType = TypeVar('DomainType')
@@ -45,7 +46,7 @@ Interpretation = Callable[[SeedType], Function]
 DEFAULT_FUNCTIONS = tuple(
     Function(f, 2, f.__name__) for f in [add, sub, mul, truediv, pow]
 )
-DEFAULT_VARIABLES = tuple('xyz')
+DEFAULT_VARIABLES = tuple('xy')
 
 
 def uniform_choice_from(bins: int, value: float) -> int:
@@ -144,3 +145,12 @@ def create_default_mutator(
             seed[1] + (uniform(-1.0, 1.0) if random() <= value_propability else 0.0)
         )
     return mutate_seed
+
+
+def show_expression(expression: Expression) -> str:
+    f, args = expression
+    if f.evaluation is None:
+        return f.name
+    if f.name == 'CONSTANT':
+        return str(f.evaluation())
+    return '{0}({1})'.format(f.name, ','.join(show_expression(arg) for arg in args))
