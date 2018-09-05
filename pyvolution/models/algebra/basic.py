@@ -121,8 +121,29 @@ def create_basic_model(
         individual_builder(((random_seed() for _ in range(gene_count)) for _ in range(karyosize)), 0)
         for _ in range(popsize)
     )
-    return population, evolution
+    def to_expression(individual: Individual) -> Expression:
+        return remap_genome(remapping, parser, default_dominance, individual.karyogram)
+
+    return population, evolution, to_expression
+
+
+class BasicAlgebraJSONEncoder(JSONEncoder):
+    """
+    >>> BasicAlgebraJSONEncoder().encode(Individual([], 0, 'Bob'))
+    """
 
     def __init__(self):
         super().__init__(ensure_ascii=False)
 
+    def default(self, o):
+        if isinstance(o, DefaultSeedTypes):
+            return o.value
+
+        if isinstance(o, Individual):
+            return dict(
+                name=o.name,
+                generation=o.generation,
+                #karyogram=o.karyogram
+            )
+
+        return JSONEncoder.default(self, o)
