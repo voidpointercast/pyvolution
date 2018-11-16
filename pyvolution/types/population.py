@@ -4,7 +4,7 @@ from functools import reduce
 from operator import add
 from itertools import cycle
 from pyvolution.types.gene import DataType
-from pyvolution.types.individual import Individual, Birthing, Spawning
+from pyvolution.types.individual import Individual, Birthing, Spawning, create_sample_individual
 
 
 Fitness = TypeVar('Fitness')
@@ -132,3 +132,12 @@ def keep_population_size(size: int) -> GrowthDetermination:
     def determine_children_count(population: RankedPopulation) -> int:
         return max(size - len(population), 0)
     return determine_children_count
+
+
+def create_sample_population(population_size: int=10, **kwargs) -> Sequence[Individual]:
+    kwargs['size'] = kwargs.get('size', 5)
+    kwargs['haplodity'] = kwargs.get('haplodity', 2)
+    return [
+        create_sample_individual(**kwargs)
+        for _ in range(population_size)
+    ]
