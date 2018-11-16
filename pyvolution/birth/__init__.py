@@ -7,7 +7,7 @@ from pyvolution.types.population import (
 from pyvolution.types.individual import (
     Birthing, create_birth_builder, create_sequential_naming,
     create_gamete_builder, Mitosis, Selector, select_half,
-    Individual
+    Individual, Naming
 )
 
 
@@ -15,8 +15,12 @@ def default_mitosis(selector: Selector=select_half, xover=lambda x: x) -> Mitosi
     return create_gamete_builder(selector, xover)
 
 
-def default_birth(xover: Crossover=lambda x: x, anomaly: Anomaly=lambda x: x) -> Birthing:
-    return create_birth_builder(default_mitosis(), create_sequential_naming(), xover=xover, anomaly=anomaly)
+def default_birth(
+        xover: Crossover=lambda x: x,
+        anomaly: Anomaly=lambda x: x,
+        naming: Naming=create_sequential_naming()
+) -> Birthing:
+    return create_birth_builder(default_mitosis(), naming, xover=xover, anomaly=anomaly)
 
 
 def create_fitness_selector(fitness: FitnessFunction, parents: int=2) -> MateSelector:
@@ -36,6 +40,7 @@ def create_fitness_selector(fitness: FitnessFunction, parents: int=2) -> MateSel
 def top_individuals_breed(
         fitness: FitnessFunction,
         xover: Crossover=lambda x: x,
-        anomaly: Anomaly=lambda x: x
+        anomaly: Anomaly=lambda x: x,
+        naming: Naming=create_sequential_naming()
 ) -> ChildrenSpawn:
-    return create_children_builder(create_fitness_selector(fitness), default_birth(xover, anomaly))
+    return create_children_builder(create_fitness_selector(fitness), default_birth(xover, anomaly, naming))
