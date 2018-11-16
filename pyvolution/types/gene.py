@@ -1,7 +1,7 @@
 from typing import TypeVar, Sequence, Callable, Optional, Mapping, MutableMapping, Iterable, Tuple
 from functools import reduce
 from operator import add
-from itertools import groupby
+from itertools import groupby, chain
 from collections import defaultdict
 from attr import attrs, attrib
 
@@ -35,6 +35,30 @@ Anomaly = Callable[[Karyogram], Karyogram]
 
 def default_reduction(bases: Sequence[BaseType]) -> BaseType:
     return reduce(add, bases[1:], bases[0])
+
+
+def aggregate_chromosomes(
+        func: Callable[[Sequence[GeneType]], GeneType],
+        chromosomes: Sequence[Chromosome]
+) -> Chromosome:
+    """
+    :param func:
+    :param chromosomes:
+    :return:
+    >>> chromosomes = [dict(zip(range(10), range(10))), dict(zip(range(10), range(10, 30)))]
+    >>> aggregate_chromosomes(max, chromosomes)
+    """
+    return dict(
+        (index, func(g[1] for g in genes))
+        for index, genes in groupby(
+            sorted(
+                (gindex, gene) for genes in (c.items() for c in chromosomes)
+                for (gindex, gene) in genes
+            ),
+            key=lambda x: x[0]
+        )
+    )
+
 
 
 def create_crossover(
