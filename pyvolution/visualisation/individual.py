@@ -72,7 +72,7 @@ def create_karyogram_aggregate_plotter(
     >>> from matplotlib.pyplot import show
     >>> from pyvolution.types.individual import create_sample_individual
     >>> sample = create_sample_individual(3, 4, gene_space=range(10, 50))
-    >>> plot = create_karyogram_aggregate_plotter(lambda x: x, max)
+    >>> plot = create_karyogram_aggregate_plotter(lambda x: x, sum)
     >>> figure = plot(sample)
     >>> figure.show()
     """
