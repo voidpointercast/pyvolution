@@ -1,8 +1,8 @@
-from typing import TypeVar, Callable, Sequence, Iterator, Optional, Tuple
+from typing import TypeVar, Callable, Sequence, Iterator, Optional, Tuple, Any, Dict, Optional, Generator
 from random import choice
 from itertools import groupby, count
-from attr import attrs, attrib
-from pyvolution.types.gene import DataType, Chromosome, KaryoTranscription, Karyogram, Crossover, Anomaly
+from attr import attrs, attrib, Factory
+from pyvolution.types.gene import DataType, Chromosome, KaryoTranscription, Karyogram, Crossover, Anomaly, GeneType
 
 NameType = TypeVar('NameType')
 
@@ -12,6 +12,7 @@ class Individual:
     karyogram: Karyogram = attrib()
     generation: int = attrib()
     name: NameType = attrib(default=None)
+    meta: Dict[str, Any] = attrib(default=Factory(dict))
 
 
 Spawning = Callable[[Iterator[DataType], int], Individual]
@@ -21,6 +22,46 @@ Gamete = Karyogram
 Mitosis = Callable[[Individual], Gamete]
 Birthing = Callable[[Sequence[Individual], int], Individual]
 Merging = Callable[[Iterator[Karyogram]], Karyogram]
+
+
+
+def create_sample_individual(
+        size: int,
+        haplodity: int,
+        gene_space: Sequence[GeneType]=tuple(range(10)),
+        chromosome_length: int=10,
+        name: str='Samplus Primus',
+        generation: int=0
+) -> Individual:
+    """
+    :param size:
+    :param haplodity:
+    :param gene_space:
+    :param chromosome_length:
+    :param name:
+    :param generation:
+    :return:
+    >>> create_sample_individual(2, 2)
+    """
+    return Individual(
+        dict(
+            (
+                index,
+                [
+                    dict(
+                        (gindex, choice(gene_space)) for gindex in range(chromosome_length)
+                    )
+                    for _ in range(haplodity)
+                ]
+            )
+            for index in range(size)
+        ),
+        generation,
+        name
+    )
+
+
+
 
 
 def create_sequential_naming(converter: Optional[Callable[[int], NameType]]=None) -> Naming:
@@ -146,7 +187,8 @@ def create_birth_builder(
         naming: Naming,
         merge: Merging=merge_karyograms,
         xover: Crossover=lambda x: x,
-        anomaly: Anomaly=lambda x: x
+        anomaly: Anomaly=lambda x: x,
+        meta_id: Optional[Generator[int, None, None]]=None
 ) -> Birthing:
     """
     :param mitosis:
@@ -170,10 +212,12 @@ def create_birth_builder(
     >>> all(results)
     True
     """
+    meta_id = meta_id if meta_id else count()
     def give_birth(parents: Sequence[Individual], generation: int) -> Individual:
         return Individual(
             karyogram=anomaly(merge(xover(mitosis(parent)) for parent in parents)),
             generation=generation,
-            name=naming(generation, parents)
+            name=naming(generation, parents),
+            meta=dict(id=next(meta_id))
         )
     return give_birth
