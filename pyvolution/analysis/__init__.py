@@ -40,6 +40,16 @@ def create_yaml_loader(basedir: str, split: bool=True) -> Generator[Sequence[Ind
                 )
 
 
+def create_serialisation_pattern(serialisation: Callable[[Individual], SerialisedIndividual]):
+    def serialise(individual: Union[Individual, Tuple[Individual, float]]) -> SerialisedIndividual:
+        if isinstance(individual, Individual):
+            return serialisation(individual)
+        else:
+            result = serialisation(individual[0])
+            result['meta']['fitness'] = individual[1]
+            return result
+    return serialise
+
 
 def create_population_storage(
         store: IndividualStorage,
@@ -69,20 +79,18 @@ def create_population_storage(
     >>> loaded == pop
     True
     """
-    def serialise(individual: Union[Individual, Tuple[Individual, float]]) -> SerialisedIndividual:
-        if isinstance(individual, Individual):
-            return serialisation(individual)
-        else:
-            result = serialisation(individual[0])
-            result['meta']['fitness'] = individual[1]
-            return result
 
-    def belongs_to_generation(generation: int, individual: Union[Individual, Tuple[Individual, float]]) -> bool:
+
+    def belongs_to_generation(
+            generation: int,
+            individual: Union[Individual, Tuple[Individual, float]]
+    ) -> bool:
         if isinstance(individual, Individual):
             return individual.generation == generation
         else:
             return individual[0].generation == generation
 
+    serialise = create_serialisation_pattern(serialisation)
 
     def store_generation(generation: int, population: Sequence[Individual]) -> None:
         generation_serialised = list(
@@ -93,3 +101,19 @@ def create_population_storage(
         store(generation, generation_serialised)
 
     return store_generation
+
+
+def create_population_subset_store(
+        predicate: Callable[[int, Individual], bool],
+        store: IndividualStorage,
+        serialisation: Callable[[Individual], SerialisedIndividual] = asdict
+) -> PopulationStorage:
+    serialise = create_serialisation_pattern(serialisation)
+    def store_population_subset(generation: int, population: Sequence[Individual]) -> None:
+        generation_serialised = list(
+            serialise(individual)
+            for individual in population
+            if predicate(generation, individual)
+        )
+        store(generation, generation_serialised)
+    return store_population_subset
