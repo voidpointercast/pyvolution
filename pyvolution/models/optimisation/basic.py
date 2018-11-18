@@ -1,11 +1,12 @@
 from typing import Callable, Sequence, Optional, List
 from math import sqrt, isnan
+from sys import stderr
 from random import uniform
 from pyvolution.naming import create_default_naming
 from pyvolution.evolution import build_evolution_model
-from pyvolution.types.individual import Individual, Naming, create_individual_builder, Spawning
-from pyvolution.fitness import FitnessFunction, create_fitness
-from pyvolution.types.gene import Crossover, Anomaly, create_linear_mapping, Transcription, ReverseTranscription, create_chromosome_builder
+from pyvolution.types.individual import Naming, create_individual_builder, Spawning, Individual
+from pyvolution.fitness import create_fitness
+from pyvolution.types.gene import Crossover, Anomaly, create_linear_mapping, create_chromosome_builder, remap_genome
 from pyvolution.types.population import Birthing, GrowthDetermination, Survival, keep_population_size
 from pyvolution.birth import top_individuals_breed
 from pyvolution.survival import keep_best_halve
@@ -52,10 +53,16 @@ def create_basic_model(
     :param survival:
     :param random:
     :return:
-    >>> population, evolution, fitness = create_basic_model([TestFunction(lambda xs: sum(map(abs, xs)))])
-    >>> sample = population[0]
-    >>> print(sample)
-    >>> fitness(sample)
+    >>> from pyvolution.evolution import create_step_stop_criteria, evolve_until
+    >>> population, evolution, remap = create_basic_model([TestFunction(lambda xs: sum(map(abs, xs)))])
+    >>> len(population)
+    100
+    >>> population = evolve_until(evolution, population, create_step_stop_criteria(1000))
+    >>> len(population)
+    100
+    >>> best = max(population, key=lambda x: x[1])
+    >>> print(best)
+    >>> print(remap(best[0]))
     """
     arities = set(f.arity for f in test_functions)
     if len(arities) != 1:
@@ -94,8 +101,13 @@ def create_basic_model(
 
     population = [
         individual_builder([[random(arity) for _ in range(gene_count)] for _ in range(karyosize)], 0)
+        for _ in range(popsize)
     ]
-    return population, evolution, ifitness
+
+    def individual_to_arguments(individual: Individual) -> Sequence[Sequence[float]]:
+        return remap_genome(remapping, reverse_transcription, dominance, individual.karyogram)
+
+    return population, evolution, individual_to_arguments
 
 
 
