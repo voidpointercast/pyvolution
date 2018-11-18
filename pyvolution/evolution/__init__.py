@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Callable, Sequence
 from itertools import chain
 from pyvolution.types.individual import Individual
 from pyvolution.types.population import (
@@ -8,6 +8,26 @@ from pyvolution.types.population import (
 )
 from pyvolution.survival import keep_best_halve
 from pyvolution.mutation import Mutator, mutate
+
+
+Evolution = Callable[[Iterable[Individual], int], RankedPopulation]
+EvolutionStopCriteria = Callable[[RankedPopulation], bool]
+
+
+def create_step_stop_criteria(steps: int) -> EvolutionStopCriteria:
+    """
+    :param steps:
+    :return:
+    >>> create_step_stop_criteria(10)(None)
+    """
+    rounds = [steps, steps]
+    def unitl_number_of_steps(_: RankedPopulation) -> bool:
+        if rounds[0]:
+            rounds[0] -= 1
+            return False
+        return True
+    return unitl_number_of_steps
+
 
 
 def build_evolution_model(
@@ -106,3 +126,21 @@ def build_evolution_model(
         )
 
     return evolve
+
+
+def evolve_until(
+        evolve: Evolution,
+        population: Iterable[Individual],
+        until: EvolutionStopCriteria,
+        generation: int=0,
+        hooks: Sequence[Callable[[int, RankedPopulation], None]]=tuple()
+) -> RankedPopulation:
+    next_population = tuple(population)
+    while True:
+        next_population = tuple(evolve(next_population, generation))
+        for hook in hooks:
+            hook(generation, next_population)
+        if until(next_population):
+            return next_population
+        next_population = (i for (i, _) in next_population)
+        generation += 1
