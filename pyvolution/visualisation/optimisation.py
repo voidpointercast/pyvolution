@@ -1,9 +1,10 @@
 from typing import Tuple, Callable, Sequence, Optional, Iterable, Any
 from itertools import product
 from numpy import arange, meshgrid, ndarray, sqrt, c_
-from matplotlib.pyplot import figure, contourf, show, scatter, Figure
+from matplotlib.pyplot import figure, contourf, show, scatter, Figure, Normalize
 from matplotlib.collections import PatchCollection
 from matplotlib.animation import FuncAnimation
+from matplotlib.cm import get_cmap
 from pyvolution.models.optimisation import TestFunction
 from pyvolution.types.population import Population
 from pyvolution.types.individual import Individual
@@ -14,7 +15,10 @@ def create_contour_view(
         xrange: Tuple[float, float, float],
         yrange: Tuple[float, float, float],
         target: TestFunction,
-        levels: Optional[int]=None
+        levels: Optional[int]=None,
+        colormap: Optional[str]='jet',
+        normalisation: Optional[Normalize]=None
+
 ) -> Tuple[Figure, PatchCollection]:
     """
     :param xrange:
@@ -35,10 +39,8 @@ def create_contour_view(
 
 
     fig = figure()
-    contourf(xs, ys, values, levels=levels)
+    contourf(xs, ys, values, levels=levels, cmap=get_cmap(colormap), norm=normalisation)
     return fig, scatter([], [], s=5, color='red', marker='o')
-
-
 
 
 def create_contour_animation(
@@ -46,7 +48,8 @@ def create_contour_animation(
         scatter_data: PatchCollection,
         frames: int,
         generations: Iterable[Population],
-        remapping: Callable[[Individual], Sequence[float]]
+        remapping: Callable[[Individual], Sequence[float]],
+        interval: int=200
 ):
     """
     :param contour:
@@ -61,15 +64,16 @@ def create_contour_animation(
     >>> show()
     >>> anim.save('line.gif', dpi=80, writer='imagemagick')
     """
-    points = [
+    points = (
         [remapping(i) for i in gen]
         for gen in generations
-    ]
+    )
     def update(step: int):
-        pxs, pys = tuple(zip(*points[step]))
+
+        pxs, pys = tuple(zip(*next(points)))
         scatter_data.set_offsets(c_[pxs, pys])
         return scatter_data, contour.axes[0]
 
-    anim = FuncAnimation(contour, update, frames=frames, interval=200)
+    anim = FuncAnimation(contour, update, frames=frames, interval=interval)
     return anim
 
