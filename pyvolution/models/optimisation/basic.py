@@ -105,7 +105,7 @@ def create_basic_model(
     ]
 
     def individual_to_arguments(individual: Individual) -> Sequence[Sequence[float]]:
-        return remap_genome(remapping, reverse_transcription, dominance, individual.karyogram)
+        return remap_genome(remapping, reverse_transcription, dominance, individual.karyogram)[0]
 
     return population, evolution, individual_to_arguments
 
