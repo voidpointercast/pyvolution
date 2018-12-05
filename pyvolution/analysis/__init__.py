@@ -11,29 +11,29 @@ PopulationStorage = Callable[[int, Sequence[Union[Individual, Tuple[Individual, 
 GenerationLoader = Callable[[None], Generator[Sequence[Individual], None, None]]
 
 
-def create_yaml_store(basedir: str, split: bool=True) -> IndividualStorage:
+def create_yaml_store(basedir: str, name: str='result', split: bool=True) -> IndividualStorage:
     makedirs(basedir, exist_ok=True)
     def yaml_file_store(_: int, population: Sequence[SerialisedIndividual]) -> None:
-        with open(join(basedir, 'population.yaml'), 'a') as out:
+        with open(join(basedir, '{0}.yaml'.format(name)), 'a') as out:
             dump(population, out, allow_unicode=True, explicit_start=True)
 
     def yaml_dir_store(generation: int, population: Sequence[SerialisedIndividual]) -> None:
-        with open(join(basedir, 'generation_{0}.yaml'.format(generation)), 'w') as out:
+        with open(join(basedir, '{1}_{0}.yaml'.format(generation, name)), 'w') as out:
             dump(population, allow_unicode=True)
 
     return yaml_dir_store if split else yaml_file_store
 
 
-def create_yaml_loader(basedir: str, split: bool=True) -> Generator[Sequence[Individual], None, None]:
+def create_yaml_loader(basedir: str, name: str='result', split: bool=True) -> Generator[Sequence[Individual], None, None]:
     if not split:
-        with open(join(basedir, 'population.yaml')) as src:
+        with open(join(basedir, '{0}.yaml'.format(name))) as src:
             for generation in load_all(src):
                 yield (Individual(**individual) for individual in generation)
 
     else:
         gen = 0
-        while exists(join(basedir, 'generation_{0}.yaml'.format(gen))):
-            with open(join(basedir, 'generation_{0}.yaml'.format(gen))) as src:
+        while exists(join(basedir, '{1}_{0}.yaml'.format(gen, name))):
+            with open(join(basedir, '{1}_{0}.yaml'.format(gen, name))) as src:
                 yield (
                     Individual(**individual)
                     for individual in load_all(src)
