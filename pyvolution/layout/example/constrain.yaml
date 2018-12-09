@@ -1,0 +1,33 @@
+chromosome: square
+genes:
+  - type: float
+    dominance: sum
+    label: x
+  - type: float
+    dominance: sum
+    label: y
+---
+chromosome: himmelblau
+genes:
+  - type: float
+    dominance: sum
+    label: x
+  - type: float
+    dominance: sum
+    label: y
+---
+chromosome: constrains
+xover: by_gender
+genes:
+  - type: bool
+    dominance: and
+    label: gender
+    mutate: false
+  - type: float
+    dominance: sum
+    label: x
+  - type: float
+    dominance: sum
+    label: y
+    position: 1000
+
