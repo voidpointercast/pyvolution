@@ -18,6 +18,7 @@ class GeneLayout(Generic[T]):
     dominance: Callable[[Iterable[T]], T] = attrib(default=sum)
     mutate: bool = attrib(default=True)
 
+
 @attrs
 class ChromosomeLayout:
     name: Optional[str] = attrib(default=None)
