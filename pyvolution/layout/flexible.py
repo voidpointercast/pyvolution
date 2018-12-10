@@ -29,6 +29,7 @@ class ChromosomeLayout:
 class FlexibleLayout:
     chromosomes: MutableMapping[int, ChromosomeLayout] = attrib(default=Factory(dict))
 
+
 def load_genes(
         typemap: Mapping[str, type],
         dominances: Mapping[str, Callable[[Iterable[T]], T]],
@@ -46,7 +47,6 @@ def load_genes(
         )
         current_position = position + 1
     return gene_map
-
 
 
 def load_flexible_layout(
