@@ -154,3 +154,42 @@ def show_expression(expression: Expression) -> str:
     if f.name == 'CONSTANT':
         return str(f.evaluation())
     return '{0}({1})'.format(f.name, ','.join(show_expression(arg) for arg in args))
+
+
+
+def create_function_from_expression(
+        expression: Expression,
+        variable_names: Sequence[str],
+        zero: DomainType,
+        default: Optional[DomainType]=None
+) -> Callable[[Sequence[DomainType]], CodomainType]:
+    """
+    :param expression:
+    :param variable_names:
+    :param zero:
+    :param default:
+    :return:
+    >>> seed = [(DefaultSeedTypes.FUNCTION, 0.0), (DefaultSeedTypes.CONSTANT, 1.0), (DefaultSeedTypes.CONSTANT, 2.0)]
+    >>> parser = create_expression_parser()
+    >>> evaluate(parser(seed), dict(), 0.0)
+    3.0
+    >>> seed = [
+    ...     (DefaultSeedTypes.FUNCTION, 0.0),
+    ...     (DefaultSeedTypes.CONSTANT, 1.0),
+    ...     (DefaultSeedTypes.VARIABLE, 0.0)
+    ... ]
+    >>> expr = parser(seed)
+    >>> f = create_function_from_expression(expr, ['x'], 0)
+    >>> f(2.0)
+    3.0
+    >>> f(x=4.0)
+    5.0
+    >>> f(2.0, x=3.0)
+    4.0
+    """
+    def expression_func(*args, **kwargs) -> CodomainType:
+        vars = dict(zip(variable_names, args), **kwargs)
+        return evaluate(expression, vars, zero, default)
+
+    return expression_func
+
