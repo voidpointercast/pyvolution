@@ -43,6 +43,22 @@ def create_random_access_storage(size: int, default: T, name: Optional[str]=None
     )
 
 
+def create_constant_store(
+        size: int,
+        project: Callable[[int, int], float]=lambda n, d: n/d,
+        name: Optional[str]=None
+) -> Storage[float]:
+    def decode_index(index: int) -> float:
+        rest = index
+        v = 0
+        while rest % 2 == 0 and rest > 0:
+            v += 1
+            rest = rest // 2
+        u = index // 2 ** v
+        return project(v, u)
+    return Storage(None, decode_index, lambda v: None, range(size), name)
+
+
 def create_stack_storage(name: Optional[str]=None) -> Storage[T]:
     stack = list()
     return Storage(stack, stack.pop, stack.append, tuple(range(len(stack))), name)
