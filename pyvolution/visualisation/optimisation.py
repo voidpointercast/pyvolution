@@ -69,7 +69,6 @@ def create_contour_animation(
         for gen in generations
     )
     def update(step: int):
-
         pxs, pys = tuple(zip(*next(points)))
         scatter_data.set_offsets(c_[pxs, pys])
         return scatter_data, contour.axes[0]
